@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     # 'libraryMS.apps.LibraryConfig',
     'libraryMS',
+    'rest_framework_swagger'
 ]
 
 REST_FRAMEWORK = {
