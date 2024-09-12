@@ -4,7 +4,19 @@ from rest_framework.permissions import BasePermission, SAFE_METHODS
 # Admins have full access to all resources
 class IsAdmin(BasePermission):
     def has_permission(self, request, view):
+        if request.method in SAFE_METHODS:
+            return True
         return request.user and request.user.is_staff
+
+
+class IsAuthor(BasePermission):
+    def has_permission(self, request, view):
+        # Ensure that the user is authenticated and is an Author
+        return request.user and request.user.is_authenticated and hasattr(request.user, 'author')
+
+    def has_object_permission(self, request, view, obj):
+        # Ensure that authors can only manage their own books
+        return obj.author == request.user.author
 
 
 # Only authors can create books and can edit or delete their own books
@@ -34,6 +46,8 @@ class IsOwnerOrReadOnly(BasePermission):
 class CanBorrowBook(BasePermission):
     def has_permission(self, request, view):
         book = view.get_object()
+        if request.method in SAFE_METHODS:
+            return True
         if request.method == 'POST':
             return not book.borrowed_by and not book.reserved_by  # Can't borrow if already borrowed or reserved
         return True
@@ -43,6 +57,8 @@ class CanBorrowBook(BasePermission):
 class CanReserveBook(BasePermission):
     def has_permission(self, request, view):
         book = view.get_object()
+        if request.method in SAFE_METHODS:
+            return True
         if request.method == 'POST':
             return book.borrowed_by and not book.reserved_by  # Can only reserve if borrowed and not reserved
         return True

@@ -2,6 +2,44 @@ from rest_framework import serializers
 from libraryMS.models import Author, Borrower, Book, BorrowingTransaction, Reservation, Review, Notification
 
 
+# Sign up Serializer
+class SignUpSerializer(serializers.Serializer):
+    user_type = serializers.ChoiceField(choices=['author', 'borrower'])
+    username = serializers.CharField(max_length=150)
+    password = serializers.CharField(write_only=True)
+    email = serializers.EmailField()
+
+    # Additional fields for author
+    name = serializers.CharField(required=False)
+    biography = serializers.CharField(required=False)
+    nationality = serializers.CharField(required=False)
+    date_of_birth = serializers.DateField(required=False)
+
+    # Additional fields for borrower
+    registration_date = serializers.DateField(required=False)
+
+    def create(self, validated_data):
+        user_type = validated_data.pop('user_type')
+        if user_type == 'author':
+            user = Author.objects.create(
+                username=validated_data['username'],
+                email=validated_data['email'],
+                name=validated_data.get('name'),
+                biography=validated_data.get('biography'),
+                nationality=validated_data.get('nationality'),
+                date_of_birth=validated_data.get('date_of_birth'),
+            )
+        elif user_type == 'borrower':
+            user = Borrower.objects.create(
+                username=validated_data['username'],
+                email=validated_data['email'],
+                registration_date=validated_data.get('registration_date'),
+            )
+        user.set_password(validated_data['password'])
+        user.save()
+        return user
+
+
 # Author Serializer
 class AuthorSerializer(serializers.ModelSerializer):
     class Meta:
@@ -28,6 +66,14 @@ class BookSerializer(serializers.ModelSerializer):
             'id', 'title', 'description', 'author', 'ISBN', 'category',
             'publication_date', 'average_rating', 'borrowed_by', 'reserved_by'
         ]
+
+    def update(self, instance, validated_data):
+        # Allow updating fields other than borrowed_by, reserved_by, and average_rating
+        for attr, value in validated_data.items():
+            if attr not in ['borrowed_by', 'reserved_by', 'average_rating']:
+                setattr(instance, attr, value)
+        instance.save()
+        return instance
 
 
 # Borrowing Transaction Serializer
