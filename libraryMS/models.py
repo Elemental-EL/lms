@@ -4,6 +4,20 @@ from django.contrib.auth.models import AbstractUser
 
 
 class Author(AbstractUser):
+    groups = models.ManyToManyField(
+        'auth.Group',
+        related_name='author_set',
+        blank=True,
+        help_text='The groups this user belongs to.',
+        verbose_name='groups'
+    )
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        related_name='author_permissions_set',
+        blank=True,
+        help_text='Specific permissions for this user.',
+        verbose_name='user permissions'
+    )
     name = models.CharField(max_length=255)
     biography = models.TextField()
     nationality = models.CharField(max_length=100)
@@ -14,6 +28,20 @@ class Author(AbstractUser):
 
 
 class Borrower(AbstractUser):
+    groups = models.ManyToManyField(
+        'auth.Group',
+        related_name='borrower_set',
+        blank=True,
+        help_text='The groups this user belongs to.',
+        verbose_name='groups'
+    )
+    user_permissions = models.ManyToManyField(
+        'auth.Permission',
+        related_name='borrower_permissions_set',
+        blank=True,
+        help_text='Specific permissions for this user.',
+        verbose_name='user permissions'
+    )
     registration_date = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
