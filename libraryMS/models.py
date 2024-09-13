@@ -1,4 +1,5 @@
 from django.contrib.auth.models import User
+from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 
@@ -97,7 +98,7 @@ class Review(models.Model):
     borrower = models.ForeignKey(Borrower, on_delete=models.CASCADE)
     book = models.ForeignKey(Book, on_delete=models.CASCADE)
     review_message = models.TextField()
-    rating = models.IntegerField()
+    rating = models.IntegerField(validators=[MinValueValidator(1), MaxValueValidator(5)])
 
     def __str__(self):
         return f"Review by {self.borrower.username} for {self.book.title}"
