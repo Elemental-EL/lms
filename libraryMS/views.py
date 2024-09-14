@@ -31,6 +31,7 @@ from libraryMS.permissions import (
 )
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from rest_framework.pagination import PageNumberPagination
 
 
 class SignUpView(APIView):
@@ -70,10 +71,20 @@ class BorrowerViewSet(viewsets.ModelViewSet):
         return super().get_permissions()
 
 
+class BookPagination(PageNumberPagination):
+    page_size = 10
+    page_size_query_param = 'page_size'
+    max_page_size = 100
+
+
 # Book ViewSet
 class BookViewSet(viewsets.ModelViewSet):
     queryset = Book.objects.all()
     serializer_class = BookSerializer
+    pagination_class = BookPagination
+    search_fields = ['title', 'author__name', 'category']
+    filterset_fields = ['author', 'category']
+
     permission_classes = [IsAuthenticated, IsAuthor]
 
     def get_queryset(self):
@@ -83,9 +94,14 @@ class BookViewSet(viewsets.ModelViewSet):
         if hasattr(user, 'author'):
             return Book.objects.filter(author=user.author)
 
-        # If the user is a borrower, show all books
+        # If the user is a borrower, show all books (they can also search and filter)
         if hasattr(user, 'borrower'):
-            return Book.objects.all()
+            queryset = super().get_queryset()
+            # Filtering by availability
+            is_available = self.request.query_params.get('available', None)
+            if is_available is not None:
+                queryset = queryset.filter(borrowed_by__isnull=True, reserved_by__isnull=True)  # Only books that aren't borrowed or reserved
+            return queryset
 
         return Book.objects.none()
 
@@ -223,6 +239,22 @@ class BorrowingTransactionViewSet(viewsets.ModelViewSet):
         transaction.book.save()
 
         return Response({"message": "Book returned successfully!"}, status=status.HTTP_200_OK)
+
+    @action(detail=True, methods=['post'], url_path='extend')
+    def extend_borrowing(self, request, pk=None):
+        """Custom action to extend the borrowing period of a book."""
+        borrowing_transaction = self.get_object()
+
+        # Check if the book is reserved by someone else
+        if Reservation.objects.filter(book=borrowing_transaction.book, expiration_date__gt=timezone.now()).exists():
+            return Response({'detail': 'Book is reserved by another borrower. Cannot extend.'},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+        # Extend the due date by 30 days (or any period you choose)
+        borrowing_transaction.due_date += timedelta(days=30)
+        borrowing_transaction.save()
+
+        return Response({'detail': 'Borrowing period extended successfully.'}, status=status.HTTP_200_OK)
 
 
 # Reservation ViewSet
@@ -371,3 +403,12 @@ class NotificationViewSet(viewsets.ModelViewSet):
         notification.read = True
         notification.save()
         return Response({"message": "Notification marked as read"})
+
+    @action(detail=False, methods=['post'])
+    def mark_all_as_read(self, request):
+        """
+        Mark all notifications for the logged-in user as read.
+        """
+        notifications = Notification.objects.filter(user=self.request.user, read=False)
+        count = notifications.update(read=True)
+        return Response({"message": f"{count} notifications marked as read"}, status=status.HTTP_200_OK)
