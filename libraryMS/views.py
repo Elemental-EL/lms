@@ -21,13 +21,8 @@ from libraryMS.serializers import (
     ReviewSerializer
 )
 from libraryMS.permissions import (
-    IsAdmin,
     IsAuthor,
     IsOwnerOrReadOnly,
-    CanReserveBook,
-    CanBorrowBook,
-    CanReviewBook,
-    IsBorrower
 )
 from rest_framework.decorators import action
 from rest_framework.response import Response

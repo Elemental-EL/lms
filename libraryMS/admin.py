@@ -1,12 +1,18 @@
 from datetime import timezone
 
 from django.contrib import admin
-from django.db.models import Count, Q, F
 from .tasks import generate_report
-from libraryMS.models import BorrowingTransaction, Reservation, Book, Borrower, Report
 
+from libraryMS.models import BorrowingTransaction, Reservation, Book, Borrower, Report, Notification, Review, Author
 
 # Register your models here.
+admin.site.register(BorrowingTransaction)
+admin.site.register(Reservation)
+admin.site.register(Book)
+admin.site.register(Borrower)
+admin.site.register(Notification)
+admin.site.register(Review)
+admin.site.register(Author)
 
 
 class ReportAdmin(admin.ModelAdmin):
