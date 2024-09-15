@@ -112,3 +112,22 @@ class Notification(models.Model):
 
     def __str__(self):
         return f"Notification for {self.user.username} - {self.message[:20]}"
+
+
+class Report(models.Model):
+    REPORT_TYPES = (
+        ('most_borrowed_books', 'Most Borrowed Books'),
+        ('borrowers_with_overdue_books', 'Borrowers with Overdue Books'),
+        ('books_currently_checked_out', 'Books Currently Checked Out'),
+        ('books_in_high_demand', 'Books in High Demand'),
+        ('borrowing_trends', 'Borrowing Trends'),
+    )
+
+    report_type = models.CharField(max_length=50, choices=REPORT_TYPES)
+    created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(max_length=20, default="pending")  # pending, completed, failed
+    generated_by = models.ForeignKey(User, on_delete=models.CASCADE)  # Admin who generated the report
+    file = models.FileField(upload_to='reports/', blank=True, null=True)  # Path to the report file
+
+    def __str__(self):
+        return f"{self.report_type} - {self.status} - {self.created_at}"
