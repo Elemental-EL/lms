@@ -44,7 +44,12 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     # 'libraryMS.apps.LibraryConfig',
     'libraryMS',
-    'rest_framework_swagger'
+    'drf_spectacular',
+]
+
+AUTHENTICATION_BACKENDS = [
+    'libraryMS.authentication.CustomModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 REST_FRAMEWORK = {
@@ -54,6 +59,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
     ),
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
 }
 
 SIMPLE_JWT = {

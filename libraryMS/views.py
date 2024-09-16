@@ -18,7 +18,7 @@ from libraryMS.serializers import (
     BookSerializer,
     BorrowingTransactionSerializer,
     ReservationSerializer,
-    ReviewSerializer
+    ReviewSerializer,
 )
 from libraryMS.permissions import (
     IsAuthor,
@@ -31,12 +31,14 @@ from rest_framework.pagination import PageNumberPagination
 
 class SignUpView(APIView):
     permission_classes = [AllowAny]
+    serializer_class = SignUpSerializer
 
     def post(self, request):
-        serializer = SignUpSerializer(data=request.data)
+        serializer = self.serializer_class(data=request.data)
+
         if serializer.is_valid():
             serializer.save()
-            return Response({"message": "User created successfully!"}, status=status.HTTP_201_CREATED)
+            return Response({'message': 'User created successfully'}, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 

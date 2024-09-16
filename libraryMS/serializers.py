@@ -1,47 +1,53 @@
 from rest_framework import serializers
 from libraryMS.models import Author, Borrower, Book, BorrowingTransaction, Reservation, Review, Notification
+from django.contrib.auth.models import User
 
 
 # Sign up Serializer
 class SignUpSerializer(serializers.Serializer):
-    user_type = serializers.ChoiceField(choices=['author', 'borrower'])
+    user_type = serializers.ChoiceField(choices=[('author', 'Author'), ('borrower', 'Borrower')])
     username = serializers.CharField(max_length=150)
     password = serializers.CharField(write_only=True)
     email = serializers.EmailField()
 
     # Additional fields for author
-    name = serializers.CharField(required=False)
-    biography = serializers.CharField(required=False)
-    nationality = serializers.CharField(required=False)
-    date_of_birth = serializers.DateField(required=False)
+    name = serializers.CharField(required=False, allow_blank=True)
+    biography = serializers.CharField(required=False, allow_blank=True)
+    nationality = serializers.CharField(required=False, allow_blank=True)
+    date_of_birth = serializers.DateField(required=False, allow_null=True)
 
     # Additional fields for borrower
-    registration_date = serializers.DateField(required=False)
+    registration_date = serializers.DateField(required=False, allow_null=True)
 
     def create(self, validated_data):
         user_type = validated_data.pop('user_type')
+        # Depending on the user type, create additional information
         if user_type == 'author':
-            user = Author.objects.create(
+            user = Author(
                 username=validated_data['username'],
                 email=validated_data['email'],
-                name=validated_data.get('name'),
-                biography=validated_data.get('biography'),
-                nationality=validated_data.get('nationality'),
-                date_of_birth=validated_data.get('date_of_birth'),
+                name=validated_data['name'],
+                biography=validated_data['biography'],
+                nationality=validated_data['nationality'],
+                date_of_birth=validated_data['date_of_birth'],
             )
+            user.set_password(validated_data['password'])
+            user.save()
+            return user
         elif user_type == 'borrower':
-            user = Borrower.objects.create(
+            user = Borrower(
                 username=validated_data['username'],
                 email=validated_data['email'],
-                registration_date=validated_data.get('registration_date'),
+                registration_date=validated_data['registration_date'],
             )
-        user.set_password(validated_data['password'])
-        user.save()
-        return user
+            user.set_password(validated_data['password'])
+            user.save()
+            return user
 
 
 # Author Serializer
 class AuthorSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Author
         fields = ['id', 'username', 'email', 'name', 'biography', 'nationality', 'date_of_birth']
@@ -49,6 +55,7 @@ class AuthorSerializer(serializers.ModelSerializer):
 
 # Borrower Serializer
 class BorrowerSerializer(serializers.ModelSerializer):
+
     class Meta:
         model = Borrower
         fields = ['id', 'username', 'email', 'registration_date']
