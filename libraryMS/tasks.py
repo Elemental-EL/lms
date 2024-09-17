@@ -5,15 +5,9 @@ from django.conf import settings
 from django.db.models import Count, Q, F
 
 from libraryMS.models import Notification, Book, Report
-from django.contrib.auth.models import User
 from django.utils import timezone
 from .models import BorrowingTransaction, Reservation
 from .utils import generate_pdf_report
-
-
-@shared_task
-def send_in_app_notification(user_id, message):
-    pass
 
 
 @shared_task
