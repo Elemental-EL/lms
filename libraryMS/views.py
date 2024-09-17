@@ -1,8 +1,4 @@
 from django.db.models import Avg
-from django.shortcuts import render
-
-# Create your views here.
-
 from datetime import timedelta
 from django.utils import timezone
 from rest_framework import viewsets, status

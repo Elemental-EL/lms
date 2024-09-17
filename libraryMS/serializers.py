@@ -1,6 +1,7 @@
+
+
 from rest_framework import serializers
 from libraryMS.models import Author, Borrower, Book, BorrowingTransaction, Reservation, Review, Notification
-from django.contrib.auth.models import User
 
 
 # Sign up Serializer
@@ -38,7 +39,6 @@ class SignUpSerializer(serializers.Serializer):
             user = Borrower(
                 username=validated_data['username'],
                 email=validated_data['email'],
-                registration_date=validated_data['registration_date'],
             )
             user.set_password(validated_data['password'])
             user.save()

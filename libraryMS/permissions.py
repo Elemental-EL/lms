@@ -1,8 +1,6 @@
 from rest_framework.permissions import BasePermission, SAFE_METHODS
 
 
-
-
 class IsAuthor(BasePermission):
     def has_permission(self, request, view):
         # Ensure that the user is authenticated and is an Author
@@ -19,4 +17,3 @@ class IsOwnerOrReadOnly(BasePermission):
         if request.method in SAFE_METHODS:
             return True
         return obj == request.user  # Only the user can edit their own information
-
